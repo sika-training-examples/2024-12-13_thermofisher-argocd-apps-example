@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: signpost
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  destination:
+    namespace: signpost
+    server: https://kubernetes.default.svc
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  source:
+    repoURL: https://github.com/sikalabs/charts.git
+    path: charts/signpost
+    helm:
+      valuesObject:
+        host: signpost.k8s.sikademo.com
+        ingressExtraAnnotations:
+          nginx.ingress.kubernetes.io/auth-url: "https://sso-proxy.k8s.sikademo.com/oauth2/auth"
+          nginx.ingress.kubernetes.io/auth-signin: "https://sso-proxy.k8s.sikademo.com/oauth2/start?rd=https://$host$request_uri"
+        signpost_yaml:
+          SiteHeading: ThermoFisher Signpost
+          CompanyName: ThermoFisher
+          Rows:
+          - Cols:
+            - Blocks:
+              - Heading: Kubernetes
+                Links:
+                - Title: ArgoCD
+                  URL: https://argocd.k8s.sikademo.com
