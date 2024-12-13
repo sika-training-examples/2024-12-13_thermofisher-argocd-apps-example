@@ -22,7 +22,7 @@ spec:
         frontend:
           host: counter2.k8s.sikademo.com
           BACKGROUND_COLOR: "green"
-          FONT_COLOR: "blue"
+          FONT_COLOR: "red"
         backend:
           host: counter2-be.k8s.sikademo.com
 
