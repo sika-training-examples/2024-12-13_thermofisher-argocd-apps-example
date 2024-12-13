@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: sso-proxy
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: sso-proxy
+    server: https://kubernetes.default.svc
+  project: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  source:
+    repoURL: https://oauth2-proxy.github.io/manifests
+    targetRevision: 6.10.1
+    chart: oauth2-proxy
+    helm:
+      valuesObject:
+        # https://github.com/oauth2-proxy/manifests/blob/main/helm/oauth2-proxy/values.yaml
+        config:
+          clientID: "sso_proxy"
+          clientSecret: "sso_proxy"
+          # openssl rand -base64 32 | head -c 32 | base64
+          cookieSecret: "QmQ4Nm9aQXJsS3c2SGM3L1krYkJ0QVQyTjVKcWZjVFY="
+          configFile: |-
+            email_domains=["*"]
+            cookie_secure="false"
+            cookie_domains=[".sikademo.com"]
+            whitelist_domains=[ ".sikademo.com"]
+            redirect_url="https://sso-proxy.k8s.sikademo.com/oauth2/callback"
+            oidc_issuer_url="https://sso.sikalabs.com/realms/sikademo"
+            provider="keycloak-oidc"
+            provider_display_name="SSO"
+        ingress:
+          enabled: true
+          className: nginx
+          path: /
+          hosts:
+            - sso-proxy.k8s.sikademo.com
+          annotations:
+            cert-manager.io/cluster-issuer: letsencrypt
+            nginx.ingress.kubernetes.io/proxy-body-size: 512m
+            nginx.ingress.kubernetes.io/proxy-buffer-size: "128k"
+          tls:
+            - secretName: sso-proxy.k8s.sikademo.com-tls
+              hosts:
+                - sso-proxy.k8s.sikademo.com
