@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: counter2
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: counter2
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  source:
+    repoURL: https://github.com/sika-training-examples/2024-12-13_thermofisher-counter-chart-example.git
+    path: .
+    helm:
+      valuesObject:
+        frontend:
+          host: counter2.k8s.sikademo.com
+          BACKGROUND_COLOR: "green"
+          FONT_COLOR: "blue"
+        backend:
+          host: counter2-be.k8s.sikademo.com
+
